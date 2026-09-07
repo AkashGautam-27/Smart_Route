@@ -1,4 +1,6 @@
 import { Router, Request, Response } from "express";
+import authRoutes from "./auth.routes";
+import testRoutes from "./test.routes";
 
 const router = Router();
 
@@ -10,8 +12,10 @@ router.get("/health", (req: Request, res: Response) => {
   });
 });
 
+router.use("/auth", authRoutes);
+router.use("/test", testRoutes);
+
 // Placeholders for future routes
-// router.use("/auth", authRoutes);
 // router.use("/buses", busRoutes);
 // router.use("/drivers", driverRoutes);
 // router.use("/routes", routeRoutes);
