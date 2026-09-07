@@ -1,6 +1,11 @@
 import { Router, Request, Response } from "express";
 import authRoutes from "./auth.routes";
 import testRoutes from "./test.routes";
+import busRoutes from "./bus.routes";
+import driverRoutes from "./driver.routes";
+import routeRoutes from "./route.routes";
+import stopRoutes from "./stop.routes";
+import mainAdminRoutes from "./mainAdmin.routes";
 
 const router = Router();
 
@@ -14,12 +19,13 @@ router.get("/health", (req: Request, res: Response) => {
 
 router.use("/auth", authRoutes);
 router.use("/test", testRoutes);
+router.use("/main-admin", mainAdminRoutes);
+router.use("/buses", busRoutes);
+router.use("/drivers", driverRoutes);
+router.use("/routes", routeRoutes);
+router.use("/stops", stopRoutes);
 
 // Placeholders for future routes
-// router.use("/buses", busRoutes);
-// router.use("/drivers", driverRoutes);
-// router.use("/routes", routeRoutes);
-// router.use("/stops", stopRoutes);
 // router.use("/trips", tripRoutes);
 // router.use("/tracking", trackingRoutes);
 

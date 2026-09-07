@@ -4,7 +4,9 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password?: string;
+  mobileNumber?: string;
   role: "admin" | "driver";
+  isSuperAdmin: boolean;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -29,10 +31,18 @@ const UserSchema = new Schema<IUser>(
       required: true,
       select: false, // Prevents password from being returned in normal queries
     },
+    mobileNumber: {
+      type: String,
+      trim: true,
+    },
     role: {
       type: String,
       enum: ["admin", "driver"],
       required: true,
+    },
+    isSuperAdmin: {
+      type: Boolean,
+      default: false,
     },
     isActive: {
       type: Boolean,

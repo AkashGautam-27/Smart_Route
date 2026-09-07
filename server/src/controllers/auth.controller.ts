@@ -49,6 +49,8 @@ export const register = async (req: Request, res: Response) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        isSuperAdmin: user.isSuperAdmin,
+        mobileNumber: user.mobileNumber,
       },
     });
   } catch (error) {
@@ -90,7 +92,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { id: user._id, role: user.role, isSuperAdmin: user.isSuperAdmin },
       process.env.JWT_SECRET || "fallback_secret",
       { expiresIn: (process.env.JWT_EXPIRES_IN || "7d") as any }
     );
@@ -104,6 +106,8 @@ export const login = async (req: Request, res: Response) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        isSuperAdmin: user.isSuperAdmin,
+        mobileNumber: user.mobileNumber,
       },
     });
   } catch (error) {
@@ -134,6 +138,8 @@ export const getCurrentUser = async (req: Request, res: Response) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        isSuperAdmin: user.isSuperAdmin,
+        mobileNumber: user.mobileNumber,
       },
     });
   } catch (error) {
