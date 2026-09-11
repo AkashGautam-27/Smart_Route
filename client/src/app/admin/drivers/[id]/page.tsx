@@ -3,143 +3,197 @@
 import { useEffect, useState } from "react";
 import api from "../../../../lib/axios";
 import { useParams, useRouter } from "next/navigation";
-import { FaArrowLeft, FaIdCard, FaBus, FaRoute, FaUserTie } from "react-icons/fa";
-import { motion } from "framer-motion";
+import { FaUser, FaArrowLeft, FaExclamationTriangle, FaBus, FaRoute, FaMapMarkerAlt, FaCircle } from "react-icons/fa";
+import Link from "next/link";
+import MapView from "../../../../components/map/MapView";
 
-export default function DriverDetailsPage() {
-  const params = useParams();
+export default function AdminDriverDetailsPage() {
+  const { id } = useParams();
   const router = useRouter();
-  const [driver, setDriver] = useState<any>(null);
-  const [bus, setBus] = useState<any>(null);
+  const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchDriverDetails = async () => {
       try {
-        const [driverRes, busesRes] = await Promise.all([
-          api.get(`/drivers`), // Quick hack since we don't have GET /drivers/:id yet, we filter. Or wait! The backend didn't expose GET /drivers/:id explicitly in phase 2? Oh wait, user wrote: `GET /api/drivers/:id` in backend structure requirement.
-          api.get(`/buses`) // To find assigned bus
-        ]);
-
-        const drivers = driverRes.data.success ? driverRes.data.drivers : [];
-        const foundDriver = drivers.find((d: any) => d._id === params.id);
-        
-        if (foundDriver) {
-          setDriver(foundDriver);
-          const buses = busesRes.data.success ? busesRes.data.buses : [];
-          const assignedBus = buses.find((b: any) => b.driverId?._id === params.id);
-          setBus(assignedBus || null);
+        const res = await api.get(`/admin/drivers/${id}/location`);
+        if (res.data.success) {
+          setData(res.data.data);
+        } else {
+          setError("Failed to load driver details.");
         }
-      } catch (error) {
-        console.error("Failed to fetch details", error);
+      } catch (err: any) {
+        if (err.response?.status === 404) {
+          setError("Driver not found.");
+        } else {
+          setError("Unable to load driver information. Please try again.");
+        }
       } finally {
         setLoading(false);
       }
     };
-    fetchDriverDetails();
-  }, [params.id]);
+    
+    if (id) fetchDriverDetails();
+  }, [id]);
 
-  if (loading) return <p className="text-gray-500 mt-10">Loading driver details...</p>;
-  if (!driver) return <p className="text-red-500 mt-10">Driver not found.</p>;
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-20">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+        <p className="text-gray-500 font-medium">Loading driver data...</p>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="flex flex-col items-center justify-center p-20">
+        <FaExclamationTriangle className="text-6xl text-amber-500 mb-6" />
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">{error || "Driver not found"}</h2>
+        <button 
+          onClick={() => router.push('/admin/drivers')}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+        >
+          Back to Drivers List
+        </button>
+      </div>
+    );
+  }
+
+  const { driver, bus, route, lastLocation } = data;
+  const assignedRouteStops = route?.stops ? [...route.stops].sort((a: any, b: any) => a.sequence - b.sequence) : [];
+  
+  const formattedLocation = lastLocation ? {
+    latitude: lastLocation.latitude,
+    longitude: lastLocation.longitude,
+    accuracy: lastLocation.accuracy,
+    lastUpdated: new Date(lastLocation.recordedAt).toLocaleString(),
+  } : undefined;
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <button 
-        onClick={() => router.back()}
-        className="flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors"
-      >
-        <FaArrowLeft className="mr-2" /> Back to Drivers
-      </button>
-
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white shadow-md rounded-xl border border-gray-200 overflow-hidden"
-      >
-        <div className="bg-blue-50 px-6 py-4 border-b border-blue-100 flex items-center">
-          <FaUserTie className="text-blue-600 text-2xl mr-3" />
-          <h2 className="text-xl font-bold text-blue-900">Driver Details</h2>
-        </div>
-        
-        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="pb-10">
+      <div className="mb-6">
+        <Link href="/admin/drivers" className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-blue-600 mb-4 transition-colors">
+          <FaArrowLeft className="mr-2" /> Back to Drivers List
+        </Link>
+        <div className="flex justify-between items-start">
           <div>
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 border-b pb-2 flex items-center">
-              <FaIdCard className="mr-2" /> Driver Information
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <p className="text-xs text-gray-400">Name</p>
-                <p className="text-lg font-medium text-gray-900">{driver.name}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">Email</p>
-                <p className="text-base text-gray-900">{driver.email}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">Mobile Number</p>
-                <p className="text-base text-gray-900">{driver.mobileNumber || "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">Status</p>
-                <span className={`px-2 py-1 mt-1 inline-flex text-xs leading-5 font-semibold rounded-full ${driver.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                  {driver.isActive ? 'Active' : 'Inactive'}
-                </span>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">Created At</p>
-                <p className="text-sm text-gray-900">{new Date(driver.createdAt).toLocaleDateString()}</p>
-              </div>
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+              <FaUser className="mr-3 text-blue-600" />
+              {driver.name}
+            </h2>
+            <div className="flex items-center mt-2 space-x-4 text-sm">
+              <span className="text-gray-600 font-medium">{driver.email}</span>
+              {driver.mobileNumber && (
+                <span className="text-gray-600 font-medium border-l border-gray-300 pl-4">{driver.mobileNumber}</span>
+              )}
             </div>
           </div>
-
           <div>
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 border-b pb-2 flex items-center">
-              <FaBus className="mr-2" /> Assignment Information
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${driver.isLocationSharingActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+              <FaCircle className="mr-1 text-[8px]" />
+              {driver.isLocationSharingActive ? 'Sharing Location' : 'Not Sharing'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        
+        {/* Left Column: Details */}
+        <div className="xl:col-span-1 space-y-6">
+          
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-md font-bold text-gray-900 flex items-center mb-4 border-b border-gray-100 pb-2">
+              Current Assignment
             </h3>
-            {!bus ? (
-              <div className="bg-gray-50 p-4 rounded-lg border border-dashed border-gray-300">
-                <p className="text-gray-500 italic text-center">No bus assigned</p>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                  <h4 className="font-semibold text-blue-900 flex items-center mb-2">
-                    <FaBus className="mr-2" /> Assigned Bus
-                  </h4>
-                  <div className="grid grid-cols-2 gap-2 mt-2">
-                    <div>
-                      <p className="text-xs text-gray-500">Bus Number</p>
-                      <p className="font-medium">{bus.busNumber}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Registration</p>
-                      <p className="font-medium">{bus.registrationNumber}</p>
-                    </div>
+            
+            {bus ? (
+              <div className="space-y-4">
+                <div className="flex items-center p-3 bg-blue-50 rounded-lg">
+                  <FaBus className="text-blue-500 text-xl mr-3" />
+                  <div>
+                    <p className="text-xs font-semibold text-blue-800 uppercase tracking-wider">Assigned Bus</p>
+                    <p className="text-md font-bold text-blue-900">{bus.busNumber}</p>
+                    <p className="text-xs text-blue-600">{bus.registrationNumber}</p>
                   </div>
                 </div>
 
-                {!bus.routeId ? (
-                  <div className="bg-gray-50 p-4 rounded-lg border border-dashed border-gray-300">
-                    <p className="text-gray-500 italic text-center">No route assigned</p>
-                  </div>
-                ) : (
-                  <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-                    <h4 className="font-semibold text-green-900 flex items-center mb-2">
-                      <FaRoute className="mr-2" /> Assigned Route
-                    </h4>
-                    <div className="space-y-2 mt-2">
-                      <div>
-                        <p className="text-xs text-gray-500">Route Name</p>
-                        <p className="font-medium">{bus.routeId.name || "Unknown"}</p>
-                      </div>
+                {route ? (
+                  <div className="flex items-center p-3 bg-green-50 rounded-lg">
+                    <FaRoute className="text-green-500 text-xl mr-3" />
+                    <div>
+                      <p className="text-xs font-semibold text-green-800 uppercase tracking-wider">Assigned Route</p>
+                      <p className="text-md font-bold text-green-900">{route.name}</p>
+                      <p className="text-xs text-green-600">{route.routeCode}</p>
                     </div>
                   </div>
+                ) : (
+                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-500">
+                    No active route assigned to this bus.
+                  </div>
                 )}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-sm">This driver is not currently assigned to any active bus.</p>
+            )}
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-md font-bold text-gray-900 flex items-center mb-4 border-b border-gray-100 pb-2">
+              Latest Location Info
+            </h3>
+            
+            {lastLocation ? (
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Coordinates</p>
+                  <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 font-mono text-sm">
+                    {lastLocation.latitude.toFixed(6)}, {lastLocation.longitude.toFixed(6)}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">GPS Accuracy</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {lastLocation.accuracy ? `${Math.round(lastLocation.accuracy)} meters` : "Unavailable"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Last Update</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {new Date(lastLocation.recordedAt).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-500 text-sm">No location history exists for this driver.</p>
+            )}
+          </div>
+
+        </div>
+
+        {/* Right Column: Map */}
+        <div className="xl:col-span-2">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-2 h-[600px] flex flex-col relative z-0">
+            {(formattedLocation || assignedRouteStops.length > 0) ? (
+              <MapView 
+                stops={assignedRouteStops} 
+                driverLocation={formattedLocation} 
+                center={formattedLocation ? [formattedLocation.latitude, formattedLocation.longitude] : undefined}
+                zoom={formattedLocation ? 14 : undefined}
+                className="w-full h-full rounded-lg" 
+              />
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 rounded-lg">
+                <FaMapMarkerAlt className="text-6xl text-gray-300 mb-4" />
+                <p className="text-gray-500 font-medium">No location or route data to display on map.</p>
               </div>
             )}
           </div>
         </div>
-      </motion.div>
+
+      </div>
     </div>
   );
 }

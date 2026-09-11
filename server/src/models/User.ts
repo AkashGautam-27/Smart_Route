@@ -8,6 +8,7 @@ export interface IUser extends Document {
   role: "admin" | "driver";
   isSuperAdmin: boolean;
   isActive: boolean;
+  isLocationSharingActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -47,6 +48,10 @@ const UserSchema = new Schema<IUser>(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    isLocationSharingActive: {
+      type: Boolean,
+      default: false,
     },
   },
   {

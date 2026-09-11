@@ -6,6 +6,8 @@ import driverRoutes from "./driver.routes";
 import routeRoutes from "./route.routes";
 import stopRoutes from "./stop.routes";
 import mainAdminRoutes from "./mainAdmin.routes";
+import driverLocationRoutes from "./driverLocation.routes";
+import adminLocationRoutes from "./adminLocation.routes";
 
 const router = Router();
 
@@ -20,8 +22,10 @@ router.get("/health", (req: Request, res: Response) => {
 router.use("/auth", authRoutes);
 router.use("/test", testRoutes);
 router.use("/main-admin", mainAdminRoutes);
+router.use("/admin", adminLocationRoutes);
 router.use("/buses", busRoutes);
 router.use("/drivers", driverRoutes);
+router.use("/driver/location", driverLocationRoutes);
 router.use("/routes", routeRoutes);
 router.use("/stops", stopRoutes);
 

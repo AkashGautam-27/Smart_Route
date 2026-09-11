@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import api from "../../../lib/axios";
 import { motion } from "framer-motion";
 import { FaPlus, FaEdit, FaTrash, FaMapMarkedAlt } from "react-icons/fa";
+import Link from "next/link";
 
 export default function RoutesPage() {
   const [routes, setRoutes] = useState<any[]>([]);
@@ -46,9 +47,9 @@ export default function RoutesPage() {
           <FaMapMarkedAlt className="mr-3 text-blue-600" />
           Route Management
         </h2>
-        <button className="flex items-center bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 shadow-sm transition-colors">
+        <Link href="/admin/routes/create" className="flex items-center bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 shadow-sm transition-colors">
           <FaPlus className="mr-2" /> Add Route
-        </button>
+        </Link>
       </div>
 
       <div className="bg-white shadow overflow-hidden sm:rounded-md border border-gray-200">
@@ -65,7 +66,7 @@ export default function RoutesPage() {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {routes.map((route, index) => (
-              <motion.tr 
+              <motion.tr
                 key={route._id}
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -78,10 +79,13 @@ export default function RoutesPage() {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{route.destination?.name}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{route.distance}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button className="text-blue-600 hover:text-blue-900 mr-4 transition-colors">
+                  <Link href={`/admin/routes/${route._id}`} className="text-purple-600 hover:text-purple-900 mr-4 transition-colors inline-flex items-center" title="View Map">
+                    <FaMapMarkedAlt className="inline mr-1" /> Map
+                  </Link>
+                  <Link href={`/admin/routes/${route._id}/edit`} className="text-blue-600 hover:text-blue-900 mr-4 transition-colors inline-block" title="Edit Route">
                     <FaEdit className="inline" />
-                  </button>
-                  <button onClick={() => deleteRoute(route._id)} className="text-red-600 hover:text-red-900 transition-colors">
+                  </Link>
+                  <button onClick={() => deleteRoute(route._id)} className="text-red-600 hover:text-red-900 transition-colors" title="Delete Route">
                     <FaTrash className="inline" />
                   </button>
                 </td>

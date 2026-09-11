@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { authService } from "../../services/auth.service";
 import { motion } from "framer-motion";
 import { FaLock, FaEnvelope, FaSignInAlt } from "react-icons/fa";
+import Link from "next/link";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -46,7 +47,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 overflow-hidden">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -61,7 +62,7 @@ export default function LoginPage() {
         </p>
       </motion.div>
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, delay: 0.1 }}
@@ -70,7 +71,7 @@ export default function LoginPage() {
         <div className="bg-white py-8 px-4 shadow-xl border border-gray-100 sm:rounded-xl sm:px-10">
           <form className="space-y-6" onSubmit={handleLogin}>
             {error && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm"
@@ -138,6 +139,13 @@ export default function LoginPage() {
               >
                 {loading ? "Signing in..." : "Sign in"}
               </motion.button>
+            </div>
+
+            <div className="text-center mt-4 border-t border-gray-100 pt-4">
+              <span className="text-gray-600 text-sm">Don't have an account? </span>
+              <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-500 transition-colors">
+                Register here
+              </Link>
             </div>
           </form>
         </div>
